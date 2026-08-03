@@ -1,372 +1,249 @@
-"""
-╔══════════════════════════════════════════════════════════╗
-║         PORTFOLIO BACKEND  —  Flask + SQLite             ║
-║                                                          ║
-║  Tables:  portfolio  → stores all portfolio JSON         ║
-║           messages   → contact form messages (CRUD)      ║
-║                                                          ║
-║  Uploads: /uploads/  → real files (photos, CV, gallery)  ║
-╚══════════════════════════════════════════════════════════╝
-"""
+import os
+import json
+import base64
+import time
+import secrets
+from flask import Flask, render_template, jsonify, request, send_from_directory
 
-from flask import Flask, jsonify, request, render_template, send_from_directory
-from flask_cors import CORS
-import sqlite3, json, os, uuid
-from datetime import datetime
-from werkzeug.utils import secure_filename
+app = Flask(__name__, template_folder='templates', static_folder='static')
 
-# ── App setup ─────────────────────────────────────────────────────────────────
-app = Flask(__name__, template_folder='templates')
-CORS(app)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(BASE_DIR, 'data.json')
+UPLOADS_DIR = os.path.join(BASE_DIR, 'static', 'uploads')
 
-BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
-DB_PATH      = os.path.join(BASE_DIR, 'portfolio.db')
-UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-ALLOWED_IMAGES = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
-ALLOWED_DOCS   = {'pdf', 'doc', 'docx'}
-MAX_IMG_SIZE   = 5  * 1024 * 1024   # 5 MB
-MAX_DOC_SIZE   = 10 * 1024 * 1024   # 10 MB
-
-# ── Default portfolio data ─────────────────────────────────────────────────────
-DEFAULT = {
+DEFAULT_DATA = {
     "pw": "admin@123",
     "profile": {
-        "firstName": "YOUR", "lastName": "NAME",
-        "bioShort": "Passionate MCA Student building the future, one line of code at a time.",
-        "bio": "I'm a passionate MCA student with a strong foundation in programming and web development. I love building innovative solutions that solve real-world problems.",
-        "roles": ["MCA Student","Python Developer","Flask Developer","C++ Programmer","Prompt Engineer","Problem Solver"],
-        "avatar": ""
+        "firstName": "HARSHVARDHAN",
+        "lastName": "BHUSARE",
+        "bioShort": "Enthusiastic MCA Student & Python/Flask Developer building real-world solutions.",
+        "bio": "Enthusiastic and analytical individual with a strong interest in solving real-world problems. Pursuing MCA at K. K. Wagh Institute of Engineering Education and Research (KKWIEER, SGPA: 8.86) after completing BBA CA (CGPA: 9.22). Possesses strong communication, problem-solving, and teamwork skills with adaptability to dynamic environments.",
+        "roles": [
+            "Python Developer",
+            "Flask Developer",
+            "MCA Student",
+            "Full Stack Developer",
+            "Problem Solver",
+            "Prompt Engineer"
+        ],
+        "avatar": "/static/images/profile.jpg"
     },
     "skills": [
-        {"id":1,  "name":"Python",             "level":85, "category":"Programming"},
-        {"id":2,  "name":"Flask",              "level":75, "category":"Framework"},
-        {"id":3,  "name":"C++",               "level":70, "category":"Programming"},
-        {"id":4,  "name":"SQL",               "level":80, "category":"Database"},
-        {"id":5,  "name":"HTML",              "level":90, "category":"Web"},
-        {"id":6,  "name":"CSS",              "level":85, "category":"Web"},
-        {"id":7,  "name":"Prompt Engineering","level":88, "category":"AI"},
-        {"id":8,  "name":"Presentation",      "level":82, "category":"Soft Skills"},
-        {"id":9,  "name":"Team Leadership",   "level":85, "category":"Soft Skills"},
-        {"id":10, "name":"Communication",     "level":80, "category":"Soft Skills"},
+        { "id": 1, "name": "Python", "level": 92, "category": "Programming" },
+        { "id": 2, "name": "Flask", "level": 88, "category": "Framework" },
+        { "id": 3, "name": "MySQL & Database Management", "level": 85, "category": "Database" },
+        { "id": 4, "name": "HTML & CSS", "level": 90, "category": "Web" },
+        { "id": 5, "name": "JavaScript", "level": 82, "category": "Web" },
+        { "id": 6, "name": "Bootstrap", "level": 80, "category": "Web" },
+        { "id": 7, "name": "REST APIs", "level": 85, "category": "Backend" },
+        { "id": 8, "name": "Data Structures & Algorithms", "level": 80, "category": "Core" },
+        { "id": 9, "name": "Prompt Engineering & AI Tools", "level": 85, "category": "AI" },
+        { "id": 10, "name": "Teamwork & Leadership", "level": 90, "category": "Soft Skills" }
     ],
     "projects": [
-        {"id":1,"title":"Student Management System",
-         "description":"A full-featured web application built with Python and Flask for managing student records, grades, and attendance with a robust SQL database backend.",
-         "tags":["Python","Flask","SQL","HTML/CSS"],"link":"#","github":"#"},
-        {"id":2,"title":"AI Prompt Toolkit",
-         "description":"A comprehensive collection of optimized prompts and templates for various AI use cases, demonstrating advanced prompt engineering techniques.",
-         "tags":["Prompt Engineering","AI","Python"],"link":"#","github":"#"},
+        {
+            "id": 1,
+            "title": "The WorkVerse",
+            "description": "Interactive web-based platform helping students improve professional skills through job role simulations, quizzes, assignments, certificates, and performance tracking.",
+            "tags": ["Python", "Flask", "HTML/CSS", "Bootstrap", "JavaScript", "MySQL", "Render"],
+            "link": "https://workverse-8.onrender.com",
+            "github": "https://github.com/HARSHVARDHAN-JOYBOY/WorkVerse.git"
+        },
+        {
+            "id": 2,
+            "title": "TRENDIFY News Explorer Pro",
+            "description": "Sophisticated news web application aggregating real-time news from credible global sources into a single navigable interface using REST APIs.",
+            "tags": ["Python", "Flask", "REST API", "MySQL", "HTML/CSS"],
+            "link": "#",
+            "github": "https://github.com/HARSHVARDHAN-JOYBOY/TRENDIFY_PROJECT_API.git"
+        },
+        {
+            "id": 3,
+            "title": "INTERNHUB — Smart Internship Portal",
+            "description": "Comprehensive web-based application designed to streamline and automate the entire internship management process.",
+            "tags": ["Web Development", "MySQL", "PHP", "HTML/CSS"],
+            "link": "http://internhub-portal.infinityfreeapp.com",
+            "github": "https://github.com/HARSHVARDHAN-JOYBOY/Internship_Portal.git"
+        }
     ],
     "achievements": [
-        {"id":1,"title":"Academic Excellence","description":"Consistently ranked in top 10% of class throughout MCA program","year":"2024","icon":"🏆"},
-        {"id":2,"title":"Hackathon Finalist","description":"Reached finals in college-level coding competition with Flask solution","year":"2024","icon":"⚡"},
+        {
+            "id": 1,
+            "title": "1st Rank — Project Presentation",
+            "description": "Organized by ABACUS CLUB KKWIEER 2026",
+            "year": "2026",
+            "icon": "🏆"
+        },
+        {
+            "id": 2,
+            "title": "3rd Rank — LogicHunt DSA Competition",
+            "description": "Data Structures & Algorithms edition by Abacus Club KKWIEER 2025",
+            "year": "2025",
+            "icon": "⚡"
+        },
+        {
+            "id": 3,
+            "title": "1st Rank in TYBBA (CA)",
+            "description": "Achieved 1st Rank in Bachelor of Business Administration (Computer Applications) 2025",
+            "year": "2025",
+            "icon": "🎓"
+        },
+        {
+            "id": 4,
+            "title": "Programmer of the Year 2023–24",
+            "description": "Awarded the title of Programmer of the Year at NVPM",
+            "year": "2024",
+            "icon": "⭐"
+        }
     ],
     "gallery": [],
     "contact": {
-        "email":"your.email@example.com","phone":"+91 XXXXXXXXXX","location":"India",
-        "github":"#","linkedin":"#","twitter":"#","instagram":"#"
+        "email": "bhusareharshvardhana2122004@gmail.com",
+        "phone": "+91 9270209244",
+        "location": "Nashik, Maharashtra",
+        "github": "https://github.com/HARSHVARDHAN-JOYBOY",
+        "linkedin": "https://github.com/HARSHVARDHAN-JOYBOY",
+        "twitter": "#",
+        "instagram": "#"
     },
     "cv": None
 }
 
-# ── Database helpers ───────────────────────────────────────────────────────────
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+def load_data():
+    if os.path.exists(DATA_FILE):
+        try:
+            with open(DATA_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                for k, v in DEFAULT_DATA.items():
+                    if k not in data:
+                        data[k] = v
+                return data
+        except Exception as e:
+            print(f"Error loading data.json: {e}")
+    return DEFAULT_DATA.copy()
 
-def init_db():
-    with get_db() as conn:
-        # Portfolio data table (single JSON row)
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS portfolio (
-                id   INTEGER PRIMARY KEY,
-                data TEXT    NOT NULL
-            )""")
-        # Contact messages table
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS messages (
-                id         INTEGER PRIMARY KEY AUTOINCREMENT,
-                name       TEXT    NOT NULL,
-                email      TEXT    NOT NULL,
-                subject    TEXT    DEFAULT '',
-                message    TEXT    NOT NULL,
-                is_read    INTEGER DEFAULT 0,
-                created_at TEXT    DEFAULT (datetime('now','localtime'))
-            )""")
-        # Seed default data if first run
-        if not conn.execute('SELECT id FROM portfolio WHERE id=1').fetchone():
-            conn.execute('INSERT INTO portfolio VALUES (1,?)', [json.dumps(DEFAULT)])
-        conn.commit()
-    print("✅  Database ready:", DB_PATH)
-
-def read_portfolio():
-    with get_db() as conn:
-        row = conn.execute('SELECT data FROM portfolio WHERE id=1').fetchone()
-        return json.loads(row['data']) if row else json.loads(json.dumps(DEFAULT))
-
-def write_portfolio(data: dict):
-    with get_db() as conn:
-        conn.execute('UPDATE portfolio SET data=? WHERE id=1', [json.dumps(data)])
-        conn.commit()
-
-def verify_pw(submitted: str) -> tuple:
-    """Returns (stored_data, ok:bool)"""
-    stored = read_portfolio()
-    return stored, submitted == stored.get('pw', 'admin@123')
-
-def allowed_file(filename: str, allowed: set) -> bool:
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed
-
-def save_upload(file, prefix='file') -> str:
-    """Save an uploaded file and return its public URL path."""
-    ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
-    filename = f"{prefix}_{uuid.uuid4().hex[:10]}.{ext}"
-    file.save(os.path.join(UPLOAD_FOLDER, filename))
-    return f'/uploads/{filename}'
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ROUTES
-# ══════════════════════════════════════════════════════════════════════════════
+def save_data(data):
+    try:
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Error writing data.json: {e}")
+        return False
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def home():
+    data = load_data()
+    safe_data = {k: v for k, v in data.items() if k != 'pw'}
+    return render_template('index.html', data=safe_data)
 
-@app.route('/uploads/<path:filename>')
-def serve_upload(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+@app.route('/api/data', methods=['GET'])
+def get_data():
+    data = load_data()
+    safe_data = {k: v for k, v in data.items() if k != 'pw'}
+    return jsonify(safe_data)
 
-# ── Health check ───────────────────────────────────────────────────────────────
-@app.route('/api/ping')
-def api_ping():
-    unread = 0
-    try:
-        with get_db() as conn:
-            unread = conn.execute('SELECT COUNT(*) FROM messages WHERE is_read=0').fetchone()[0]
-    except Exception: pass
+@app.route('/api/ping', methods=['GET'])
+def ping():
     return jsonify({
-        'status':  'ok',
-        'python':  __import__('sys').version.split()[0],
-        'db':      os.path.exists(DB_PATH),
-        'unread':  unread,
-        'time':    datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        'status': 'ok',
+        'server': 'Flask (Python)',
+        'data_file_exists': os.path.exists(DATA_FILE),
+        'writable': os.access(BASE_DIR, os.W_OK)
     })
 
-# ── Portfolio data ─────────────────────────────────────────────────────────────
-@app.route('/api/data')
-def api_get():
-    data = read_portfolio()
-    data.pop('pw', None)   # never send password to browser
-    return jsonify(data)
-
-@app.route('/api/verify-pw', methods=['POST'])
-def api_verify():
-    body = request.get_json(silent=True) or {}
-    stored, ok = verify_pw(body.get('pw', ''))
-    if ok:
-        with get_db() as conn:
-            unread = conn.execute('SELECT COUNT(*) FROM messages WHERE is_read=0').fetchone()[0]
-        return jsonify({'valid': True, 'unread': unread})
+@app.route('/api/verify', methods=['POST'])
+def verify_pw():
+    req = request.get_json(silent=True) or {}
+    submitted_pw = req.get('pw', '')
+    data = load_data()
+    stored_pw = data.get('pw', 'admin@123')
+    
+    if submitted_pw == stored_pw:
+        return jsonify({'valid': True})
     return jsonify({'valid': False, 'error': 'Wrong password'}), 403
 
 @app.route('/api/save', methods=['POST'])
-def api_save():
-    body = request.get_json(silent=True)
-    if not body:
-        return jsonify({'error': 'No data received'}), 400
-    stored, ok = verify_pw(body.get('pw', ''))
-    if not ok:
+def save_portfolio():
+    req = request.get_json(silent=True)
+    if not req:
+        return jsonify({'error': 'Invalid JSON body'}), 400
+    
+    submitted_pw = req.get('pw', '')
+    new_data = req.get('data', {})
+    
+    current_data = load_data()
+    stored_pw = current_data.get('pw', 'admin@123')
+    
+    if submitted_pw != stored_pw:
+        return jsonify({'error': 'Invalid password — save rejected'}), 403
+    
+    merged = {**current_data, **new_data}
+    if 'pw' in new_data and new_data['pw']:
+        merged['pw'] = new_data['pw']
+    else:
+        merged['pw'] = stored_pw
+        
+    if save_data(merged):
+        return jsonify({'success': True, 'message': 'Saved successfully!'})
+    else:
+        return jsonify({'error': 'Could not write to data.json on server disk'}), 500
+
+@app.route('/api/upload', methods=['POST'])
+def upload_avatar():
+    submitted_pw = request.form.get('pw', '')
+    current_data = load_data()
+    stored_pw = current_data.get('pw', 'admin@123')
+    
+    if submitted_pw != stored_pw:
         return jsonify({'error': 'Invalid password'}), 403
-    new = body.get('data', {})
-    stored.update(new)
-    if new.get('pw'):
-        stored['pw'] = new['pw']
-    write_portfolio(stored)
-    return jsonify({'success': True})
+    
+    if 'photo' not in request.files:
+        return jsonify({'error': 'No file received'}), 400
+    
+    file = request.files['photo']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    try:
+        os.makedirs(UPLOADS_DIR, exist_ok=True)
+        ext = os.path.splitext(file.filename)[1].lower() or '.png'
+        filename = f"avatar_{int(time.time())}_{secrets.token_hex(4)}{ext}"
+        dest_path = os.path.join(UPLOADS_DIR, filename)
+        file.save(dest_path)
+        
+        public_url = f"/static/uploads/{filename}"
+        current_data['profile']['avatar'] = public_url
+        save_data(current_data)
+        return jsonify({'success': True, 'url': public_url})
+    except Exception:
+        try:
+            file.seek(0)
+            file_bytes = file.read()
+            mime = file.mimetype or 'image/png'
+            b64_str = base64.b64encode(file_bytes).decode('utf-8')
+            data_url = f"data:{mime};base64,{b64_str}"
+            current_data['profile']['avatar'] = data_url
+            save_data(current_data)
+            return jsonify({'success': True, 'url': data_url})
+        except Exception as ex:
+            return jsonify({'error': f"Upload failed: {str(ex)}"}), 500
 
 @app.route('/api/reset', methods=['POST'])
-def api_reset():
-    body = request.get_json(silent=True) or {}
-    _, ok = verify_pw(body.get('pw', ''))
-    if not ok:
+def reset_data():
+    req = request.get_json(silent=True) or {}
+    submitted_pw = req.get('pw', '')
+    current_data = load_data()
+    stored_pw = current_data.get('pw', 'admin@123')
+    
+    if submitted_pw != stored_pw:
         return jsonify({'error': 'Invalid password'}), 403
-    write_portfolio(json.loads(json.dumps(DEFAULT)))
-    return jsonify({'success': True})
+    
+    if save_data(DEFAULT_DATA):
+        return jsonify({'success': True})
+    return jsonify({'error': 'Reset failed'}), 500
 
-# ── File uploads ───────────────────────────────────────────────────────────────
-@app.route('/api/upload/avatar', methods=['POST'])
-def upload_avatar():
-    stored, ok = verify_pw(request.form.get('pw', ''))
-    if not ok:
-        return jsonify({'error': 'Invalid password'}), 403
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded'}), 400
-    f = request.files['file']
-    if not allowed_file(f.filename, ALLOWED_IMAGES):
-        return jsonify({'error': 'Only JPG, PNG, GIF, WEBP allowed'}), 400
-    if request.content_length and request.content_length > MAX_IMG_SIZE:
-        return jsonify({'error': 'Max 5MB allowed'}), 400
-    # Delete old avatar file if it was an upload
-    old = stored.get('profile', {}).get('avatar', '')
-    if old.startswith('/uploads/'):
-        old_path = os.path.join(UPLOAD_FOLDER, os.path.basename(old))
-        if os.path.exists(old_path):
-            os.remove(old_path)
-    url = save_upload(f, prefix='avatar')
-    stored['profile']['avatar'] = url
-    write_portfolio(stored)
-    return jsonify({'success': True, 'url': url})
-
-@app.route('/api/upload/gallery', methods=['POST'])
-def upload_gallery():
-    stored, ok = verify_pw(request.form.get('pw', ''))
-    if not ok:
-        return jsonify({'error': 'Invalid password'}), 403
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded'}), 400
-    f = request.files['file']
-    if not allowed_file(f.filename, ALLOWED_IMAGES):
-        return jsonify({'error': 'Only image files allowed'}), 400
-    caption = request.form.get('caption', '')
-    url = save_upload(f, prefix='gallery')
-    item = {'id': uuid.uuid4().hex, 'url': url, 'caption': caption}
-    stored.setdefault('gallery', []).append(item)
-    write_portfolio(stored)
-    return jsonify({'success': True, 'item': item})
-
-@app.route('/api/upload/cv', methods=['POST'])
-def upload_cv():
-    stored, ok = verify_pw(request.form.get('pw', ''))
-    if not ok:
-        return jsonify({'error': 'Invalid password'}), 403
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded'}), 400
-    f = request.files['file']
-    if not allowed_file(f.filename, ALLOWED_DOCS):
-        return jsonify({'error': 'Only PDF, DOC, DOCX allowed'}), 400
-    # Remove old CV
-    old = (stored.get('cv') or {}).get('url', '')
-    if old.startswith('/uploads/'):
-        old_path = os.path.join(UPLOAD_FOLDER, os.path.basename(old))
-        if os.path.exists(old_path):
-            os.remove(old_path)
-    url = save_upload(f, prefix='cv')
-    cv_data = {'url': url, 'name': secure_filename(f.filename)}
-    stored['cv'] = cv_data
-    write_portfolio(stored)
-    return jsonify({'success': True, 'cv': cv_data})
-
-@app.route('/api/delete/gallery-item', methods=['POST'])
-def delete_gallery_item():
-    body = request.get_json(silent=True) or {}
-    stored, ok = verify_pw(body.get('pw', ''))
-    if not ok:
-        return jsonify({'error': 'Invalid password'}), 403
-    item_id = body.get('id')
-    gallery = stored.get('gallery', [])
-    item = next((g for g in gallery if g['id'] == item_id), None)
-    if item and item['url'].startswith('/uploads/'):
-        path = os.path.join(UPLOAD_FOLDER, os.path.basename(item['url']))
-        if os.path.exists(path):
-            os.remove(path)
-    stored['gallery'] = [g for g in gallery if g['id'] != item_id]
-    write_portfolio(stored)
-    return jsonify({'success': True})
-
-# ── Contact messages ───────────────────────────────────────────────────────────
-@app.route('/api/message/send', methods=['POST'])
-def msg_send():
-    body = request.get_json(silent=True) or {}
-    name    = body.get('name',    '').strip()
-    email   = body.get('email',   '').strip()
-    subject = body.get('subject', '').strip()
-    message = body.get('message', '').strip()
-
-    errors = []
-    if len(name) < 2:    errors.append('Name is too short')
-    if '@' not in email: errors.append('Invalid email address')
-    if len(message) < 5: errors.append('Message is too short')
-    if errors:
-        return jsonify({'error': ', '.join(errors)}), 400
-
-    with get_db() as conn:
-        conn.execute(
-            'INSERT INTO messages (name,email,subject,message) VALUES (?,?,?,?)',
-            [name, email, subject, message]
-        )
-        conn.commit()
-    return jsonify({'success': True, 'message': 'Message sent successfully!'})
-
-@app.route('/api/message/list')
-def msg_list():
-    stored, ok = verify_pw(request.args.get('pw', ''))
-    if not ok:
-        return jsonify({'error': 'Invalid password'}), 403
-
-    filt = request.args.get('filter', 'all')   # all | unread | read
-    sort = request.args.get('sort',   'newest') # newest | oldest
-
-    where = {'all': '', 'unread': 'WHERE is_read=0', 'read': 'WHERE is_read=1'}.get(filt, '')
-    order = 'DESC' if sort != 'oldest' else 'ASC'
-
-    with get_db() as conn:
-        rows   = conn.execute(f'SELECT * FROM messages {where} ORDER BY created_at {order}').fetchall()
-        total  = conn.execute('SELECT COUNT(*) FROM messages').fetchone()[0]
-        unread = conn.execute('SELECT COUNT(*) FROM messages WHERE is_read=0').fetchone()[0]
-
-    return jsonify({
-        'success': True,
-        'messages': [dict(r) for r in rows],
-        'total': total,
-        'unread': unread
-    })
-
-@app.route('/api/message/read', methods=['POST'])
-def msg_read():
-    body = request.get_json(silent=True) or {}
-    _, ok = verify_pw(body.get('pw', ''))
-    if not ok:
-        return jsonify({'error': 'Invalid password'}), 403
-
-    msg_id  = body.get('id', 0)
-    is_read = int(body.get('is_read', 1))
-
-    with get_db() as conn:
-        if msg_id == 0:
-            conn.execute('UPDATE messages SET is_read=1')
-        else:
-            conn.execute('UPDATE messages SET is_read=? WHERE id=?', [is_read, msg_id])
-        conn.commit()
-    return jsonify({'success': True})
-
-@app.route('/api/message/delete', methods=['POST'])
-def msg_delete():
-    body = request.get_json(silent=True) or {}
-    _, ok = verify_pw(body.get('pw', ''))
-    if not ok:
-        return jsonify({'error': 'Invalid password'}), 403
-
-    msg_id = body.get('id', 0)
-    with get_db() as conn:
-        if msg_id == 0:
-            conn.execute('DELETE FROM messages')
-        else:
-            conn.execute('DELETE FROM messages WHERE id=?', [msg_id])
-        conn.commit()
-    return jsonify({'success': True})
-
-
-# ── Entry point ────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
-    init_db()
-    print("─" * 58)
-    print("🚀  Portfolio server starting…")
-    print("   Local   →  http://localhost:5000")
-    print("   Network →  http://0.0.0.0:5000")
-    print("   Admin   →  click ⚙ in footer  |  pw: admin@123")
-    print("─" * 58)
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    port = int(os.environ.get('PORT', 5000))
+    print(f"Starting Flask Portfolio Server on http://localhost:{port}")
+    app.run(host='0.0.0.0', port=port, debug=True)

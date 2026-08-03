@@ -1,0 +1,97 @@
+{
+  "pw": "admin@123",
+  "profile": {
+    "firstName": "HARSHVARDHAN",
+    "lastName": "BHUSARE",
+    "bioShort": "Enthusiastic MCA Student & Python/Flask Developer building real-world solutions.",
+    "bio": "Enthusiastic and analytical individual with a strong interest in solving real-world problems. Pursuing MCA at K. K. Wagh Institute of Engineering Education and Research (KKWIEER, SGPA: 8.86) after completing BBA CA (CGPA: 9.22). Possesses strong communication, problem-solving, and teamwork skills with adaptability to dynamic environments.",
+    "roles": [
+      "Python Developer",
+      "Flask Developer",
+      "MCA Student",
+      "Full Stack Developer",
+      "Problem Solver",
+      "Prompt Engineer"
+    ],
+    "avatar": "/static/images/profile.jpg"
+  },
+  "skills": [
+    { "id": 1, "name": "Python", "level": 92, "category": "Programming" },
+    { "id": 2, "name": "Flask", "level": 88, "category": "Framework" },
+    { "id": 3, "name": "MySQL & Database Management", "level": 85, "category": "Database" },
+    { "id": 4, "name": "HTML & CSS", "level": 90, "category": "Web" },
+    { "id": 5, "name": "JavaScript", "level": 82, "category": "Web" },
+    { "id": 6, "name": "Bootstrap", "level": 80, "category": "Web" },
+    { "id": 7, "name": "REST APIs", "level": 85, "category": "Backend" },
+    { "id": 8, "name": "Data Structures & Algorithms", "level": 80, "category": "Core" },
+    { "id": 9, "name": "Prompt Engineering & AI Tools", "level": 85, "category": "AI" },
+    { "id": 10, "name": "Teamwork & Leadership", "level": 90, "category": "Soft Skills" }
+  ],
+  "projects": [
+    {
+      "id": 1,
+      "title": "The WorkVerse",
+      "description": "Interactive web-based platform helping students improve professional skills through job role simulations, quizzes, assignments, certificates, and performance tracking.",
+      "tags": ["Python", "Flask", "HTML/CSS", "Bootstrap", "JavaScript", "MySQL", "Render"],
+      "link": "https://workverse-8.onrender.com",
+      "github": "https://github.com/HARSHVARDHAN-JOYBOY/WorkVerse.git"
+    },
+    {
+      "id": 2,
+      "title": "TRENDIFY News Explorer Pro",
+      "description": "Sophisticated news web application aggregating real-time news from credible global sources into a single navigable interface using REST APIs.",
+      "tags": ["Python", "Flask", "REST API", "MySQL", "HTML/CSS"],
+      "link": "#",
+      "github": "https://github.com/HARSHVARDHAN-JOYBOY/TRENDIFY_PROJECT_API.git"
+    },
+    {
+      "id": 3,
+      "title": "INTERNHUB — Smart Internship Portal",
+      "description": "Comprehensive web-based application designed to streamline and automate the entire internship management process.",
+      "tags": ["Web Development", "MySQL", "PHP", "HTML/CSS"],
+      "link": "http://internhub-portal.infinityfreeapp.com",
+      "github": "https://github.com/HARSHVARDHAN-JOYBOY/Internship_Portal.git"
+    }
+  ],
+  "achievements": [
+    {
+      "id": 1,
+      "title": "1st Rank — Project Presentation",
+      "description": "Organized by ABACUS CLUB KKWIEER 2026",
+      "year": "2026",
+      "icon": "🏆"
+    },
+    {
+      "id": 2,
+      "title": "3rd Rank — LogicHunt DSA Competition",
+      "description": "Data Structures & Algorithms edition by Abacus Club KKWIEER 2025",
+      "year": "2025",
+      "icon": "⚡"
+    },
+    {
+      "id": 3,
+      "title": "1st Rank in TYBBA (CA)",
+      "description": "Achieved 1st Rank in Bachelor of Business Administration (Computer Applications) 2025",
+      "year": "2025",
+      "icon": "🎓"
+    },
+    {
+      "id": 4,
+      "title": "Programmer of the Year 2023–24",
+      "description": "Awarded the title of Programmer of the Year at NVPM",
+      "year": "2024",
+      "icon": "⭐"
+    }
+  ],
+  "gallery": [],
+  "contact": {
+    "email": "bhusareharshvardhana2122004@gmail.com",
+    "phone": "+91 9270209244",
+    "location": "Nashik, Maharashtra",
+    "github": "https://github.com/HARSHVARDHAN-JOYBOY",
+    "linkedin": "https://github.com/HARSHVARDHAN-JOYBOY",
+    "twitter": "#",
+    "instagram": "#"
+  },
+  "cv": null
+}
