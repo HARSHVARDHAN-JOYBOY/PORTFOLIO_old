@@ -7,8 +7,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script id="portfolio-data" type="application/json">
+  {{ data | tojson | safe }}
+</script>
 <script>
-  window.PORTFOLIO_DATA = {{ data | tojson }};
+  try {
+    window.PORTFOLIO_DATA = JSON.parse(document.getElementById('portfolio-data').textContent);
+  } catch (e) {
+    window.PORTFOLIO_DATA = {};
+  }
 </script>
 </head>
 <body>
