@@ -3,6 +3,9 @@ import json
 import base64
 import time
 import secrets
+import html
+import urllib.error
+import urllib.request
 from flask import Flask, render_template, jsonify, request, send_from_directory
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
@@ -151,6 +154,62 @@ def ping():
         'data_file_exists': os.path.exists(DATA_FILE),
         'writable': os.access(BASE_DIR, os.W_OK)
     })
+
+@app.route('/api/contact', methods=['POST'])
+def send_contact_message():
+    """Send a portfolio contact-form message through Resend."""
+    req = request.get_json(silent=True) or {}
+    name = str(req.get('name', '')).strip()
+    sender_email = str(req.get('email', '')).strip()
+    subject = str(req.get('subject', '')).strip()
+    message = str(req.get('message', '')).strip()
+
+    if not name or not sender_email or not message:
+        return jsonify({'error': 'Name, email, and message are required.'}), 400
+    if len(name) > 120 or len(sender_email) > 254 or len(subject) > 200 or len(message) > 5000:
+        return jsonify({'error': 'One or more fields are too long.'}), 400
+    if '@' not in sender_email or sender_email.startswith('@') or sender_email.endswith('@'):
+        return jsonify({'error': 'Please enter a valid email address.'}), 400
+
+    resend_api_key = os.environ.get('RESEND_API_KEY')
+    from_email = os.environ.get('CONTACT_FROM_EMAIL')
+    recipient = os.environ.get('CONTACT_RECIPIENT_EMAIL', 'bhusareharshvardhana2122004@gmail.com')
+    if not resend_api_key or not from_email:
+        app.logger.error('Contact email is not configured: missing RESEND_API_KEY or CONTACT_FROM_EMAIL')
+        return jsonify({'error': 'The contact form is temporarily unavailable. Please email me directly.'}), 503
+
+    safe_name = html.escape(name)
+    safe_email = html.escape(sender_email)
+    safe_subject = html.escape(subject or 'Portfolio contact form message')
+    safe_message = html.escape(message).replace('\n', '<br>')
+    payload = json.dumps({
+        'from': from_email,
+        'to': [recipient],
+        'reply_to': sender_email,
+        'subject': f'Portfolio: {subject or "New message from " + name}',
+        'html': (
+            f'<h2>New portfolio message</h2><p><strong>Name:</strong> {safe_name}</p>'
+            f'<p><strong>Email:</strong> {safe_email}</p><p><strong>Subject:</strong> {safe_subject}</p>'
+            f'<p><strong>Message:</strong><br>{safe_message}</p>'
+        ),
+    }).encode('utf-8')
+    email_request = urllib.request.Request(
+        'https://api.resend.com/emails', data=payload, method='POST',
+        headers={'Authorization': f'Bearer {resend_api_key}', 'Content-Type': 'application/json'}
+    )
+    try:
+        with urllib.request.urlopen(email_request, timeout=10) as response:
+            if response.status not in (200, 201):
+                app.logger.error('Resend returned status %s', response.status)
+                return jsonify({'error': 'Unable to send your message right now.'}), 502
+    except urllib.error.HTTPError as error:
+        app.logger.error('Resend rejected contact message: %s', error.code)
+        return jsonify({'error': 'Unable to send your message right now.'}), 502
+    except urllib.error.URLError:
+        app.logger.exception('Could not reach Resend')
+        return jsonify({'error': 'Unable to send your message right now.'}), 502
+
+    return jsonify({'success': True, 'message': 'Message sent successfully.'})
 
 @app.route('/api/verify', methods=['POST'])
 def verify_pw():

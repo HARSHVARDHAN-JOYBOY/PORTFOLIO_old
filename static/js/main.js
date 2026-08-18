@@ -600,11 +600,33 @@ function openLB(url) { g('lb-img').src = url; g('lb').classList.add('on'); docum
 function closeLB() { g('lb').classList.remove('on'); document.body.style.overflow = ''; }
 
 // ── CONTACT FORM ─────────────────────────────────────────────────────────────
-function submitForm() {
-  const n = g('fm-name').value, e = g('fm-email').value, m = g('fm-msg').value;
+async function submitForm() {
+  const n = g('fm-name').value.trim();
+  const e = g('fm-email').value.trim();
+  const s = g('fm-subject').value.trim();
+  const m = g('fm-msg').value.trim();
   if (!n || !e || !m) { notif('⚠ Please fill all required fields', true); return; }
-  notif('✓ Message received! Thank you for reaching out.');
-  ['fm-name', 'fm-email', 'fm-subject', 'fm-msg'].forEach(id => g(id).value = '');
+
+  const button = document.querySelector('#contact .cf button');
+  const originalButton = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+  try {
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: n, email: e, subject: s, message: m })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Unable to send message.');
+    notif('✓ Message sent! Thank you for reaching out.');
+    ['fm-name', 'fm-email', 'fm-subject', 'fm-msg'].forEach(id => g(id).value = '');
+  } catch (error) {
+    notif('⚠ ' + (error.message || 'Unable to send message. Please try again.'), true);
+  } finally {
+    button.disabled = false;
+    button.innerHTML = originalButton;
+  }
 }
 
 // ── NOTIFICATION ─────────────────────────────────────────────────────────────

@@ -28,6 +28,16 @@ This project is a high-performance **Flask (Python) Portfolio** with modern styl
 4. Keep all default settings (Vercel automatically detects `vercel.json` and `@vercel/python`).
 5. Click **Deploy**!
 
+### Enable the contact form
+
+The contact form sends mail through [Resend](https://resend.com). In the Vercel project, add these environment variables for **Production**, **Preview**, and **Development**, then redeploy:
+
+- `RESEND_API_KEY` — create this in your Resend account.
+- `CONTACT_FROM_EMAIL` — a sender address on a domain you have verified in Resend, such as `Portfolio <contact@yourdomain.com>`.
+- `CONTACT_RECIPIENT_EMAIL` *(optional)* — defaults to `bhusareharshvardhana2122004@gmail.com`.
+
+Never put `RESEND_API_KEY` in the frontend JavaScript or commit it to the repository.
+
 ---
 
 ## 🔒 3. Permanent Updates on Vercel (Visible to Everyone)
