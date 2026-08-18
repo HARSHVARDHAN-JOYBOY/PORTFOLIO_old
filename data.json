@@ -83,7 +83,23 @@
       "icon": "⭐"
     }
   ],
-  "gallery": [],
+  "gallery": [
+    {
+      "id": "industry-assignment-2026",
+      "url": "/static/images/First%20In%20Industry%20Suggested%20Project.jpeg",
+      "caption": "First Place — Industry-Suggested Assignment Project, MCA, KKWIEER (2026)"
+    },
+    {
+      "id": "programmer-of-the-year-2024",
+      "url": "/static/images/Programmer%20of%20the%20Year.jpeg",
+      "caption": "Programmer of the Year — BBA CA, NVPM (2024)"
+    },
+    {
+      "id": "dsa-competition-2025",
+      "url": "/static/images/Third%20in%20DSA%20ABACUS%20CLUB.jpeg",
+      "caption": "Third Place — DSA Coding Competition, MCA, KKWIEER (2025)"
+    }
+  ],
   "contact": {
     "email": "bhusareharshvardhana2122004@gmail.com",
     "phone": "+91 9270209244",

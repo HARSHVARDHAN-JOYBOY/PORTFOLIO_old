@@ -245,7 +245,10 @@ function renderGallery() {
   grid.innerHTML = D.gallery.map(item => `
     <div class="gal-item reveal" onclick="openLB('${item.url}')">
       <img src="${item.url}" alt="${item.caption || ''}" loading="lazy">
-      <div class="gal-ov"><i class="fas fa-expand-alt"></i></div>
+      <div class="gal-ov">
+        <i class="fas fa-expand-alt"></i>
+        <span class="gal-caption">${item.caption || 'View photo'}</span>
+      </div>
     </div>`).join('');
   setTimeout(initReveal, 80);
 }
