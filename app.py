@@ -195,7 +195,11 @@ def send_contact_message():
     }).encode('utf-8')
     email_request = urllib.request.Request(
         'https://api.resend.com/emails', data=payload, method='POST',
-        headers={'Authorization': f'Bearer {resend_api_key}', 'Content-Type': 'application/json'}
+        headers={
+            'Authorization': f'Bearer {resend_api_key}',
+            'Content-Type': 'application/json',
+            'User-Agent': 'harshvardhan-portfolio-contact-form/1.0',
+        }
     )
     try:
         with urllib.request.urlopen(email_request, timeout=10) as response:
@@ -203,7 +207,8 @@ def send_contact_message():
                 app.logger.error('Resend returned status %s', response.status)
                 return jsonify({'error': 'Unable to send your message right now.'}), 502
     except urllib.error.HTTPError as error:
-        app.logger.error('Resend rejected contact message: %s', error.code)
+        error_body = error.read().decode('utf-8', errors='replace')
+        app.logger.error('Resend rejected contact message: %s %s', error.code, error_body)
         return jsonify({'error': 'Unable to send your message right now.'}), 502
     except urllib.error.URLError:
         app.logger.exception('Could not reach Resend')
