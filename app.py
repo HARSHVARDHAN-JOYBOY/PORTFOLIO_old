@@ -15,7 +15,7 @@ DATA_FILE = os.path.join(BASE_DIR, 'data.json')
 UPLOADS_DIR = os.path.join(BASE_DIR, 'static', 'uploads')
 
 DEFAULT_DATA = {
-    "pw": "admin@123",
+    "pw": "9270209244@Kkw",
     "profile": {
         "firstName": "HARSHVARDHAN",
         "lastName": "BHUSARE",
@@ -221,7 +221,7 @@ def verify_pw():
     req = request.get_json(silent=True) or {}
     submitted_pw = req.get('pw', '')
     data = load_data()
-    stored_pw = data.get('pw', 'admin@123')
+    stored_pw = data.get('pw', '9270209244@Kkw')
     
     if submitted_pw == stored_pw:
         return jsonify({'valid': True})
@@ -237,7 +237,7 @@ def save_portfolio():
     new_data = req.get('data', {})
     
     current_data = load_data()
-    stored_pw = current_data.get('pw', 'admin@123')
+    stored_pw = current_data.get('pw', '9270209244@Kkw')
     
     if submitted_pw != stored_pw:
         return jsonify({'error': 'Invalid password — save rejected'}), 403
@@ -257,7 +257,7 @@ def save_portfolio():
 def upload_avatar():
     submitted_pw = request.form.get('pw', '')
     current_data = load_data()
-    stored_pw = current_data.get('pw', 'admin@123')
+    stored_pw = current_data.get('pw', '9270209244@Kkw')
     
     if submitted_pw != stored_pw:
         return jsonify({'error': 'Invalid password'}), 403
@@ -298,7 +298,7 @@ def reset_data():
     req = request.get_json(silent=True) or {}
     submitted_pw = req.get('pw', '')
     current_data = load_data()
-    stored_pw = current_data.get('pw', 'admin@123')
+    stored_pw = current_data.get('pw', '9270209244@Kkw')
     
     if submitted_pw != stored_pw:
         return jsonify({'error': 'Invalid password'}), 403

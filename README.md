@@ -54,7 +54,7 @@ Never put `RESEND_API_KEY` in the frontend JavaScript or commit it to the reposi
 
 2. **Method B (Admin Panel Export)**:
    - Open your portfolio on Vercel or localhost.
-   - Click the gear icon (`⚙`) in the footer and log in with your admin password (default: `admin@123`).
+   - Click the gear icon (`⚙`) in the footer and log in with your admin password.
    - Make any edits to your bio, skills, projects, achievements, or contact info.
    - Go to the **Settings** tab and click **"Export data.json"**.
    - Save the downloaded `data.json` into your project directory, commit, and push to GitHub!
